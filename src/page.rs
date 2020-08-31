@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
+use core::mem::{align_of, align_of_val, size_of, size_of_val};
+
 /// A single page of memory
 ///
 /// This type is page-aligned and page-sized.
@@ -40,10 +42,17 @@ impl Page {
     ///
     /// All unused bytes are zero.
     ///
-    /// The following constraints MUST apply to the value:
-    ///   1. `align_of_val(&value) <= align_of::<Page>()`
-    ///   2. `size_of_val(&value) <= size_of::<Page>()`
+    /// # Panics
+    ///
+    /// This function panics if any of these constraints are false:
+    ///   1. `size_of::<Page>() >= size_of_val(&value)`
+    ///   2. `align_of::<Page>() >= align_of_val(&value)`
+    ///   3. `align_of::<Page>() % align_of_val(&value) == 0`
     pub fn copy<T: Copy>(value: T) -> Page {
+        assert!(size_of::<Page>() >= size_of_val(&value));
+        assert!(align_of::<Page>() >= align_of_val(&value));
+        assert!(align_of::<Page>() % align_of_val(&value) == 0);
+
         let mut pages = [Page::default()];
         let bytes = unsafe { pages.align_to_mut::<u8>().1 };
         let typed = unsafe { bytes.align_to_mut().1 };
