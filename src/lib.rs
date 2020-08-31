@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
-//! This crate contains utilities for managing memory
+//! This crate contains utilities for managing CPU primitives like:
+//!   * Registers
+//!   * Addresses
+//!   * Offsets
+//!   * Pages
 
 #![no_std]
 #![deny(clippy::all)]
