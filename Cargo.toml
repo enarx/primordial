@@ -4,3 +4,18 @@ version = "0.1.0"
 authors = ["Nathaniel McCallum <npmccallum@redhat.com>"]
 edition = "2018"
 license = "Apache-2.0"
+homepage = "https://github.com/enarx/primordial"
+repository = "https://github.com/enarx/primordial"
+description = "Low-level CPU primitives"
+readme = "README.md"
+keywords = ["register", "address", "offset", "page"]
+categories = ["hardware-support", "memory-management", "no-std"]
+exclude = [ ".gitignore", ".github/*" ]
+
+[badges]
+# See https://doc.rust-lang.org/cargo/reference/manifest.html#the-badges-section
+github = { repository = "enarx/primordial", workflow = "test" }
+#github = { repository = "enarx/primordial", workflow = "lint" }
+maintenance = { status = "actively-developed" }
+is-it-maintained-issue-resolution = { repository = "enarx/primordial" }
+is-it-maintained-open-issues = { repository = "enarx/primordial" }
