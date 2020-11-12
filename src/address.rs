@@ -48,6 +48,8 @@ impl<T, U> Address<T, U> {
     }
 }
 
+pub struct AlignmentError;
+
 impl<T, U> Address<T, U>
 where
     Offset<usize, ()>: Into<Offset<T, ()>>,
@@ -59,10 +61,10 @@ where
     ///
     /// Succeeds only, if they have the same alignment
     #[inline]
-    pub fn try_cast<V>(self) -> Result<Address<T, V>, ()> {
+    pub fn try_cast<V>(self) -> Result<Address<T, V>, AlignmentError> {
         let align: T = Offset::from_items(align_of::<V>()).into().items();
         if self.0 % align != T::ZERO {
-            return Err(());
+            return Err(AlignmentError);
         }
         Ok(Address(self.0, PhantomData))
     }
