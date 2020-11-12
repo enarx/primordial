@@ -57,6 +57,31 @@ macro_rules! implfrom {
         }
     };
 
+    (@try $attr:meta Register<$f:ident> via Register<$s:ident> => Register<$t:ident>) => {
+        #[$attr]
+        impl core::convert::TryFrom<Register<$f>> for Register<$t> {
+            type Error = core::num::TryFromIntError;
+
+            #[inline]
+            fn try_from(value: Register<$f>) -> Result<Register<$t>, Self::Error> {
+                let s: Register<$s> = value.into();
+                Ok(Self(core::convert::TryFrom::try_from(s.0)?))
+            }
+        }
+    };
+
+    (@try $attr:meta Register<$f:ident> via Register<$s:ident> => $t:ident) => {
+        #[$attr]
+        impl core::convert::TryFrom<Register<$f>> for $t {
+            type Error = core::num::TryFromIntError;
+
+            #[inline]
+            fn try_from(value: Register<$f>) -> Result<Self, Self::Error> {
+                let s: Register<$s> = value.into();
+                core::convert::TryFrom::try_from(s.0)
+            }
+        }
+    };
     ($tu:ident:$ts:ident [$($lu:ident:$ls:ident)*] $($su:ident:$ss:ident)?, $($next:tt)*) => {
         implfrom! { #[allow(missing_docs)] $tu:$ts [$($lu:$ls)*] $($su:$ss)?, $($next)* }
     };
@@ -83,8 +108,8 @@ macro_rules! implfrom {
 
             implfrom! { $attr Register<$ts> => Register<$lu> }
             implfrom! { $attr $ts => Register<$lu> }
-            implfrom! { @try $attr Register<$lu> => Register<$ts> }
-            implfrom! { @try $attr Register<$lu> => $ts }
+            implfrom! { @try $attr Register<$lu> via Register<$ls> => Register<$ts> }
+            implfrom! { @try $attr Register<$lu> via Register<$ls> => $ts }
 
             implfrom! { $attr Register<$tu> => Register<$ls> }
             implfrom! { $attr $tu => Register<$ls> }
@@ -281,6 +306,7 @@ impl<T> Register<T> {
 #[cfg(test)]
 mod tests {
     use super::Register;
+    use core::convert::TryInto;
 
     #[test]
     fn integers() {
@@ -320,5 +346,17 @@ mod tests {
 
         slc[3] = 0;
         assert_eq!(buf[3], 0);
+    }
+
+    #[test]
+    fn signed_from_register_usize() {
+        let r = Register::<isize>::from(-1isize);
+        let u: Register<usize> = r.try_into().unwrap();
+        assert_eq!(usize::from(u), usize::max_value());
+        let r: isize = u.into();
+        assert_eq!(r, -1isize);
+        // Now a direct conversion to i32 should be possible, too
+        let r: i32 = u.try_into().unwrap();
+        assert_eq!(r, -1i32);
     }
 }
