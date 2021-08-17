@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
+use core::fmt::{self, Formatter};
 use core::marker::PhantomData;
 use core::mem::align_of;
 use core::ops::*;
@@ -45,6 +46,40 @@ impl<T, U> Address<T, U> {
     #[inline]
     pub fn raw(self) -> T {
         self.0
+    }
+}
+
+impl<T, U> Address<T, U>
+where
+    Address<usize, U>: From<Address<T, U>>,
+    Address<T, U>: Copy,
+{
+    /// Returns a raw pointer to its inner type
+    ///
+    /// # Safety
+    /// Behavior is undefined, if the pointer is used and
+    /// is not aligned or points to uninitialized memory.
+    pub fn as_ptr(&self) -> *const U {
+        Address::<usize, U>::from(*self).0 as *const U
+    }
+
+    /// Returns a raw pointer to its inner type
+    ///
+    /// # Safety
+    /// Behavior is undefined, if the pointer is used and
+    /// is not aligned or points to uninitialized memory.
+    pub fn as_mut_ptr(&self) -> *mut U {
+        Address::<usize, U>::from(*self).0 as *mut U
+    }
+}
+
+impl<T: Copy, U> fmt::Pointer for Address<T, U>
+where
+    Address<usize, U>: From<Address<T, U>>,
+    Address<T, U>: Copy,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{:p}", self.as_ptr())
     }
 }
 
@@ -265,5 +300,11 @@ mod test {
         assert_eq!(Address::from(9usize).lower::<u64>().raw(), 8);
         assert_eq!(Address::from(7usize).raise::<u32>().raw(), 8);
         assert_eq!(Address::from(7usize).lower::<u32>().raw(), 4);
+    }
+
+    #[test]
+    fn print_pointer() {
+        println!("{:p}", Address::from(4usize).raise::<Page>());
+        println!("{:p}", Address::from(7u64).lower::<u32>());
     }
 }
