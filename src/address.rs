@@ -22,7 +22,12 @@ use core::ops::*;
 #[repr(transparent)]
 pub struct Address<T, U>(T, PhantomData<U>);
 
-impl<T: Zero, U: Copy> Address<T, U> {
+#[cfg(feature = "const-default")]
+impl<T: Zero, U> const_default::ConstDefault for Address<T, U> {
+    const DEFAULT: Self = Self::NULL;
+}
+
+impl<T: Zero, U> Address<T, U> {
     /// The NULL address
     pub const NULL: Address<T, U> = Address(T::ZERO, PhantomData);
 }
