@@ -18,6 +18,11 @@ use core::ops::*;
 #[repr(transparent)]
 pub struct Offset<T, U>(T, PhantomData<U>);
 
+#[cfg(feature = "const-default")]
+impl<T: Zero, U> const_default::ConstDefault for Offset<T, U> {
+    const DEFAULT: Self = Self(T::ZERO, PhantomData);
+}
+
 impl<T, U> Offset<T, U> {
     /// Create an offset value from the number of items
     #[inline]

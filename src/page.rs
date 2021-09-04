@@ -9,6 +9,11 @@ use core::mem::{align_of, align_of_val, size_of, size_of_val};
 #[repr(C, align(4096))]
 pub struct Page([[u64; 32]; 16]);
 
+#[cfg(feature = "const-default")]
+impl const_default::ConstDefault for Page {
+    const DEFAULT: Self = Self([[0; 32]; 16]);
+}
+
 impl Default for Page {
     fn default() -> Self {
         Self([[0; 32]; 16])

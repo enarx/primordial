@@ -2,7 +2,7 @@ on: [pull_request]
 name: test
 jobs:
   test:
-    name: ${{ matrix.toolchain }} (${{ matrix.profile.name }})
+    name: ${{ matrix.toolchain }} ${{ matrix.profile.name }} ${{ matrix.features }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -13,7 +13,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: ${{ matrix.profile.flag }}
+          args: ${{ matrix.profile.flag }} --features=${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
@@ -22,6 +22,9 @@ jobs:
           - beta
           - stable
           - 1.41.0
+        features:
+          -
+          - const-default
         profile:
           - name: debug
           - name: release

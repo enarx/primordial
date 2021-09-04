@@ -271,6 +271,11 @@ implptr! {
 #[repr(transparent)]
 pub struct Register<T>(T);
 
+#[cfg(feature = "const-default")]
+impl<T: super::Zero> const_default::ConstDefault for Register<T> {
+    const DEFAULT: Self = Self(T::ZERO);
+}
+
 impl<T> Register<T> {
     /// Converts a register value to a slice
     ///
