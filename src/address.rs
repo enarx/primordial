@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
-use core::fmt::{self, Formatter};
 use core::marker::PhantomData;
-use core::mem::align_of;
+use core::mem::{align_of, size_of};
 use core::ops::*;
 
 /// An address
@@ -18,9 +17,53 @@ use core::ops::*;
 /// Unlike the naked underlying types, you can infallibly convert between,
 /// for example, an `Address<usize, ()>` and an `Address<u64, ()>` wherever
 /// such a conversion is lossless given the target CPU architecture.
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct Address<T, U>(T, PhantomData<U>);
+
+impl<T: core::fmt::Binary, U> core::fmt::Binary for Address<T, U> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Binary::fmt(&self.0, f)
+    }
+}
+
+impl<T: core::fmt::LowerHex, U> core::fmt::Debug for Address<T, U> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_fmt(format_args!(
+            "Address(0x{:01$x})",
+            self.0,
+            size_of::<T>() * 2
+        ))
+    }
+}
+
+impl<T: core::fmt::Display, U> core::fmt::Display for Address<T, U> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Display::fmt(&self.0, f)
+    }
+}
+
+impl<T: core::fmt::LowerHex, U> core::fmt::LowerHex for Address<T, U> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::LowerHex::fmt(&self.0, f)
+    }
+}
+
+impl<T, U> core::fmt::Pointer for Address<T, U>
+where
+    Self: Into<Address<usize, U>>,
+    Self: Copy,
+{
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Pointer::fmt(&self.as_ptr(), f)
+    }
+}
+
+impl<T: core::fmt::UpperHex, U> core::fmt::UpperHex for Address<T, U> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::UpperHex::fmt(&self.0, f)
+    }
+}
 
 #[cfg(feature = "const-default")]
 impl<T: Zero, U> const_default::ConstDefault for Address<T, U> {
@@ -56,16 +99,16 @@ impl<T, U> Address<T, U> {
 
 impl<T, U> Address<T, U>
 where
-    Address<usize, U>: From<Address<T, U>>,
-    Address<T, U>: Copy,
+    Self: Into<Address<usize, U>>,
 {
     /// Returns a raw pointer to its inner type
     ///
     /// # Safety
     /// Behavior is undefined, if the pointer is used and
     /// is not aligned or points to uninitialized memory.
-    pub fn as_ptr(&self) -> *const U {
-        Address::<usize, U>::from(*self).0 as *const U
+    #[inline]
+    pub fn as_ptr(self) -> *const U {
+        self.into().0 as *const U
     }
 
     /// Returns a raw pointer to its inner type
@@ -73,18 +116,9 @@ where
     /// # Safety
     /// Behavior is undefined, if the pointer is used and
     /// is not aligned or points to uninitialized memory.
-    pub fn as_mut_ptr(&self) -> *mut U {
-        Address::<usize, U>::from(*self).0 as *mut U
-    }
-}
-
-impl<T: Copy, U> fmt::Pointer for Address<T, U>
-where
-    Address<usize, U>: From<Address<T, U>>,
-    Address<T, U>: Copy,
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{:p}", self.as_ptr())
+    #[inline]
+    pub fn as_mut_ptr(self) -> *mut U {
+        self.into().0 as *mut U
     }
 }
 
@@ -92,21 +126,21 @@ pub struct AlignmentError;
 
 impl<T, U> Address<T, U>
 where
-    Offset<usize, ()>: Into<Offset<T, ()>>,
-    T: Rem<T, Output = T>,
-    T: Zero,
-    T: PartialEq,
+    Self: Into<Address<usize, U>>,
+    Self: From<Address<usize, U>>,
 {
     /// Try casting an existing `Address` into an `Address` of a different type
     ///
-    /// Succeeds only, if they have the same alignment
+    /// Succeeds only, if they have compatible alignment
     #[inline]
     pub fn try_cast<V>(self) -> Result<Address<T, V>, AlignmentError> {
-        let align: T = Offset::from_items(align_of::<V>()).into().items();
-        if self.0 % align != T::ZERO {
+        let addr = self.into();
+
+        if addr.0 % align_of::<V>() != 0 {
             return Err(AlignmentError);
         }
-        Ok(Address(self.0, PhantomData))
+
+        Ok(Address(Self::from(addr).0, PhantomData))
     }
 }
 

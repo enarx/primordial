@@ -18,6 +18,30 @@ use core::ops::*;
 #[repr(transparent)]
 pub struct Offset<T, U>(T, PhantomData<U>);
 
+impl<T: core::fmt::Binary, U> core::fmt::Binary for Offset<T, U> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Binary::fmt(&self.0, f)
+    }
+}
+
+impl<T: core::fmt::Display, U> core::fmt::Display for Offset<T, U> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Display::fmt(&self.0, f)
+    }
+}
+
+impl<T: core::fmt::LowerHex, U> core::fmt::LowerHex for Offset<T, U> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::LowerHex::fmt(&self.0, f)
+    }
+}
+
+impl<T: core::fmt::UpperHex, U> core::fmt::UpperHex for Offset<T, U> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::UpperHex::fmt(&self.0, f)
+    }
+}
+
 #[cfg(feature = "const-default")]
 impl<T: Zero, U> const_default::ConstDefault for Offset<T, U> {
     const DEFAULT: Self = Self(T::ZERO, PhantomData);
