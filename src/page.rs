@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
+use core::borrow::{Borrow, BorrowMut};
 use core::mem::{align_of, align_of_val, size_of, size_of_val};
+use core::ops::{Deref, DerefMut};
 
 /// A single page of memory
 ///
@@ -15,19 +17,52 @@ impl const_default::ConstDefault for Page {
 }
 
 impl Default for Page {
+    #[inline]
     fn default() -> Self {
-        Self([[0; 32]; 16])
+        Self::zeroed()
+    }
+}
+
+impl Deref for Page {
+    type Target = [u8];
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        unsafe { self.0.align_to().1 }
+    }
+}
+
+impl DerefMut for Page {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { self.0.align_to_mut().1 }
     }
 }
 
 impl AsRef<[u8]> for Page {
+    #[inline]
     fn as_ref(&self) -> &[u8] {
         unsafe { self.0.align_to().1 }
     }
 }
 
 impl AsMut<[u8]> for Page {
+    #[inline]
     fn as_mut(&mut self) -> &mut [u8] {
+        unsafe { self.0.align_to_mut().1 }
+    }
+}
+
+impl Borrow<[u8]> for Page {
+    #[inline]
+    fn borrow(&self) -> &[u8] {
+        unsafe { self.0.align_to().1 }
+    }
+}
+
+impl BorrowMut<[u8]> for Page {
+    #[inline]
+    fn borrow_mut(&mut self) -> &mut [u8] {
         unsafe { self.0.align_to_mut().1 }
     }
 }
