@@ -84,6 +84,7 @@ impl Page {
     }
 
     /// Returns a Page full of zeroes
+    #[inline]
     pub const fn zeroed() -> Self {
         Self([0; Self::SIZE])
     }
