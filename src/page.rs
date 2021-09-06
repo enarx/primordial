@@ -66,6 +66,13 @@ impl BorrowMut<[u8]> for Page {
     }
 }
 
+impl From<[u8; Self::SIZE]> for Page {
+    #[inline]
+    fn from(value: [u8; Self::SIZE]) -> Self {
+        Self(value)
+    }
+}
+
 impl Page {
     /// The page size on the platform
     pub const SIZE: usize = 4096;
