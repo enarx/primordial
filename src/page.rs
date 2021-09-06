@@ -8,11 +8,11 @@ use core::ops::{Deref, DerefMut};
 /// This type is page-aligned and page-sized.
 #[derive(Copy, Clone)]
 #[repr(C, align(4096))]
-pub struct Page([[u64; 32]; 16]);
+pub struct Page([u8; Self::SIZE]);
 
 #[cfg(feature = "const-default")]
 impl const_default::ConstDefault for Page {
-    const DEFAULT: Self = Self([[0; 32]; 16]);
+    const DEFAULT: Self = Self::zeroed();
 }
 
 impl Default for Page {
@@ -67,13 +67,17 @@ impl BorrowMut<[u8]> for Page {
 }
 
 impl Page {
-    /// Returns the size of the page in bytes
-    pub const fn size() -> usize {
-        core::mem::size_of::<Self>()
+    /// The page size on the platform
+    pub const SIZE: usize = 4096;
+
+    /// Creates a new page from its bytes
+    #[inline]
+    pub const fn new(value: [u8; Self::SIZE]) -> Self {
+        Self(value)
     }
 
     /// Returns a Page full of zeroes
     pub const fn zeroed() -> Self {
-        Self([[0; 32]; 16])
+        Self([0; Self::SIZE])
     }
 }
