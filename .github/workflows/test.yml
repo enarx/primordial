@@ -21,10 +21,12 @@ jobs:
           - nightly
           - beta
           - stable
-          - 1.41.0
+          - 1.51.0
         features:
           -
+          - alloc
           - const-default
+          - alloc,const-default
         profile:
           - name: debug
           - name: release
