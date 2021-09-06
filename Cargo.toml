@@ -20,5 +20,8 @@ maintenance = { status = "actively-developed" }
 is-it-maintained-issue-resolution = { repository = "enarx/primordial" }
 is-it-maintained-open-issues = { repository = "enarx/primordial" }
 
+[features]
+alloc = []
+
 [dependencies]
 const-default = { version = "0.1", optional = true }

@@ -10,14 +10,19 @@
 #![deny(clippy::all)]
 #![deny(missing_docs)]
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
 mod address;
 mod offset;
 mod page;
+mod pages;
 mod register;
 
 pub use address::Address;
 pub use offset::Offset;
 pub use page::Page;
+pub use pages::Pages;
 pub use register::Register;
 
 /// Defines the additive identity value
