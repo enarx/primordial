@@ -24,4 +24,4 @@ is-it-maintained-open-issues = { repository = "enarx/primordial" }
 alloc = []
 
 [dependencies]
-const-default = { version = "0.1", optional = true }
+const-default = { version = "0.2", optional = true }
