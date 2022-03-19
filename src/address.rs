@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
+use core::cmp::Ordering;
 use core::marker::PhantomData;
 use core::mem::{align_of, size_of};
 use core::ops::*;
@@ -17,17 +18,37 @@ use core::ops::*;
 /// Unlike the naked underlying types, you can infallibly convert between,
 /// for example, an `Address<usize, ()>` and an `Address<u64, ()>` wherever
 /// such a conversion is lossless given the target CPU architecture.
-#[derive(Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Default)]
 #[repr(transparent)]
 pub struct Address<T, U>(T, PhantomData<U>);
 
-impl<T: core::fmt::Binary, U> core::fmt::Binary for Address<T, U> {
+impl<T: PartialEq + Ord, U> PartialEq for Address<T, U> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl<T: Eq + Ord, U> Eq for Address<T, U> {}
+
+impl<T: Ord, U> Ord for Address<T, U> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.cmp(&other.0)
+    }
+}
+
+impl<T: PartialOrd + Ord, U> PartialOrd for Address<T, U> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<T: core::fmt::Binary + Ord, U> core::fmt::Binary for Address<T, U> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         core::fmt::Binary::fmt(&self.0, f)
     }
 }
 
-impl<T: core::fmt::LowerHex, U> core::fmt::Debug for Address<T, U> {
+impl<T: core::fmt::LowerHex + Ord, U> core::fmt::Debug for Address<T, U> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_fmt(format_args!(
             "Address(0x{:01$x})",
@@ -37,13 +58,13 @@ impl<T: core::fmt::LowerHex, U> core::fmt::Debug for Address<T, U> {
     }
 }
 
-impl<T: core::fmt::Display, U> core::fmt::Display for Address<T, U> {
+impl<T: core::fmt::Display + Ord, U> core::fmt::Display for Address<T, U> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         core::fmt::Display::fmt(&self.0, f)
     }
 }
 
-impl<T: core::fmt::LowerHex, U> core::fmt::LowerHex for Address<T, U> {
+impl<T: core::fmt::LowerHex + Ord, U> core::fmt::LowerHex for Address<T, U> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         core::fmt::LowerHex::fmt(&self.0, f)
     }
@@ -53,24 +74,25 @@ impl<T, U> core::fmt::Pointer for Address<T, U>
 where
     Self: Into<Address<usize, U>>,
     Self: Copy,
+    T: Ord,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         core::fmt::Pointer::fmt(&self.as_ptr(), f)
     }
 }
 
-impl<T: core::fmt::UpperHex, U> core::fmt::UpperHex for Address<T, U> {
+impl<T: core::fmt::UpperHex + Ord, U> core::fmt::UpperHex for Address<T, U> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         core::fmt::UpperHex::fmt(&self.0, f)
     }
 }
 
 #[cfg(feature = "const-default")]
-impl<T: Zero, U> const_default::ConstDefault for Address<T, U> {
+impl<T: Zero + Ord, U> const_default::ConstDefault for Address<T, U> {
     const DEFAULT: Self = Self::NULL;
 }
 
-impl<T: Zero, U> Address<T, U> {
+impl<T: Zero + Ord, U> Address<T, U> {
     /// The NULL address
     pub const NULL: Address<T, U> = Address(T::ZERO, PhantomData);
 }
@@ -97,7 +119,7 @@ impl<T, U> Address<T, U> {
     }
 }
 
-impl<T, U> Address<T, U>
+impl<T: Ord, U> Address<T, U>
 where
     Self: Into<Address<usize, U>>,
 {
@@ -124,7 +146,7 @@ where
 
 pub struct AlignmentError;
 
-impl<T, U> Address<T, U>
+impl<T: Ord, U> Address<T, U>
 where
     Self: Into<Address<usize, U>>,
     Self: From<Address<usize, U>>,
@@ -144,7 +166,7 @@ where
     }
 }
 
-impl<T, U> Address<T, U>
+impl<T: Ord, U> Address<T, U>
 where
     Offset<usize, ()>: Into<Offset<T, ()>>,
     T: Add<T, Output = T>,
@@ -169,7 +191,7 @@ where
 }
 
 /// Convert a raw address value to an untyped `Address`
-impl<T> From<T> for Address<T, ()> {
+impl<T: Ord> From<T> for Address<T, ()> {
     #[inline]
     fn from(value: T) -> Self {
         Self(value, PhantomData)
@@ -177,7 +199,7 @@ impl<T> From<T> for Address<T, ()> {
 }
 
 /// Convert a reference to an `Address` with the same type
-impl<T, U> From<&U> for Address<T, U>
+impl<T: Ord, U> From<&U> for Address<T, U>
 where
     Address<usize, U>: Into<Address<T, U>>,
 {
@@ -188,7 +210,7 @@ where
 }
 
 /// Convert a mutable pointer to an `Address` with the same type
-impl<T, U> From<*mut U> for Address<T, U>
+impl<T: Ord, U> From<*mut U> for Address<T, U>
 where
     Address<usize, U>: Into<Address<T, U>>,
 {
@@ -199,7 +221,7 @@ where
 }
 
 /// Convert a const pointer to an `Address` with the same type
-impl<T, U> From<*const U> for Address<T, U>
+impl<T: Ord, U> From<*const U> for Address<T, U>
 where
     Address<usize, U>: Into<Address<T, U>>,
 {
@@ -210,7 +232,7 @@ where
 }
 
 // Convert from a `Register` to an untyped `Address`.
-impl<T: From<Register<T>>> From<Register<T>> for Address<T, ()> {
+impl<T: From<Register<T>> + Ord> From<Register<T>> for Address<T, ()> {
     #[inline]
     fn from(value: Register<T>) -> Self {
         Self::from(T::from(value))
@@ -218,7 +240,7 @@ impl<T: From<Register<T>>> From<Register<T>> for Address<T, ()> {
 }
 
 // Convert from an `Address` to a `Register`, discarding type.
-impl<T, U> From<Address<T, U>> for Register<T>
+impl<T: Ord, U> From<Address<T, U>> for Register<T>
 where
     Register<T>: From<T>,
 {
@@ -260,7 +282,7 @@ impl<U> From<Address<usize, U>> for Address<u32, U> {
     }
 }
 
-impl<T, U> Add<Offset<T, U>> for Address<T, U>
+impl<T: Ord, U> Add<Offset<T, U>> for Address<T, U>
 where
     Offset<usize, ()>: Into<Offset<T, ()>>,
     T: Mul<T, Output = T>,
@@ -274,7 +296,7 @@ where
     }
 }
 
-impl<T, U> AddAssign<Offset<T, U>> for Address<T, U>
+impl<T: Ord, U> AddAssign<Offset<T, U>> for Address<T, U>
 where
     Offset<usize, ()>: Into<Offset<T, ()>>,
     T: Mul<T, Output = T>,
@@ -286,7 +308,7 @@ where
     }
 }
 
-impl<T, U> Sub<Address<T, U>> for Address<T, U>
+impl<T: Ord, U> Sub<Address<T, U>> for Address<T, U>
 where
     Offset<usize, ()>: Into<Offset<T, ()>>,
     T: Mul<T, Output = T>,
@@ -303,7 +325,7 @@ where
     }
 }
 
-impl<T, U> Sub<Offset<T, U>> for Address<T, U>
+impl<T: Ord, U> Sub<Offset<T, U>> for Address<T, U>
 where
     Offset<usize, ()>: Into<Offset<T, ()>>,
     T: Mul<T, Output = T>,
@@ -317,7 +339,7 @@ where
     }
 }
 
-impl<T, U> SubAssign<Offset<T, U>> for Address<T, U>
+impl<T: Ord, U> SubAssign<Offset<T, U>> for Address<T, U>
 where
     Offset<usize, ()>: Into<Offset<T, ()>>,
     T: Mul<T, Output = T>,
@@ -332,6 +354,36 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn addr_equal() {
+        assert_eq!(Address::from(1), Address::from(1));
+    }
+
+    #[test]
+    fn addr_greater_than() {
+        assert!(Address::from(2) > Address::from(1));
+    }
+
+    #[test]
+    fn addr_less_than() {
+        assert!(Address::from(1) < Address::from(2));
+    }
+
+    #[test]
+    fn addr_not_equal() {
+        assert!(Address::from(1) != Address::from(2));
+    }
+
+    #[test]
+    fn addr_not_greater_than() {
+        assert!(!(Address::from(1) > Address::from(2)));
+    }
+
+    #[test]
+    fn addr_not_less_than() {
+        assert!(!(Address::from(2) < Address::from(1)));
+    }
 
     #[test]
     fn align() {
