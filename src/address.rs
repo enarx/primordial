@@ -334,6 +334,26 @@ mod test {
     use super::*;
 
     #[test]
+    fn addr_equal() {
+        assert_eq!(Address::from(1), Address::from(1));
+    }
+
+    #[test]
+    fn addr_greater_than() {
+        assert!(Address::from(2) > Address::from(1));
+    }
+
+    #[test]
+    fn addr_less_than() {
+        assert!(Address::from(1) < Address::from(2));
+    }
+
+    #[test]
+    fn addr_not_equal() {
+        assert!(Address::from(1) != Address::from(2));
+    }
+
+    #[test]
     fn align() {
         assert_eq!(Address::from(9usize).raise::<u64>().raw(), 16);
         assert_eq!(Address::from(9usize).lower::<u64>().raw(), 8);
