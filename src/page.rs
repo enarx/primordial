@@ -6,7 +6,7 @@ use core::ops::{Deref, DerefMut};
 /// A single page of memory
 ///
 /// This type is page-aligned and page-sized.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(C, align(4096))]
 pub struct Page([u8; Self::SIZE]);
 
