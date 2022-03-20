@@ -314,6 +314,7 @@ mod tests {
     use core::convert::TryInto;
 
     #[test]
+    #[allow(unused_must_use)]
     fn integers() {
         Register::<usize>::from(0u8);
         Register::<usize>::from(0u16);
@@ -327,6 +328,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(unused_must_use)]
     fn pointers() {
         <*const u8>::from(Register::<usize>::from(0));
         Register::<usize>::from(&0u8);
