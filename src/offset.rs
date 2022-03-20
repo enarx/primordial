@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
+use core::cmp::Ordering;
 use core::marker::PhantomData;
 use core::mem::size_of;
 use core::ops::*;
@@ -14,7 +15,7 @@ use core::ops::*;
 /// underlying types so long as the conversion is lossless for the target CPU
 /// architecture. For example, `Offset<u64>` can be converted to
 /// `Offset<usize>` on 64-bit systems.
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, Default)]
 #[repr(transparent)]
 pub struct Offset<T, U>(T, PhantomData<U>);
 
@@ -39,6 +40,26 @@ impl<T: core::fmt::LowerHex, U> core::fmt::LowerHex for Offset<T, U> {
 impl<T: core::fmt::UpperHex, U> core::fmt::UpperHex for Offset<T, U> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         core::fmt::UpperHex::fmt(&self.0, f)
+    }
+}
+
+impl<T: PartialEq, U> PartialEq for Offset<T, U> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl<T: Eq, U> Eq for Offset<T, U> {}
+
+impl<T: PartialOrd, U> PartialOrd for Offset<T, U> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.0.partial_cmp(&other.0)
+    }
+}
+
+impl<T: Ord, U> Ord for Offset<T, U> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.cmp(&other.0)
     }
 }
 

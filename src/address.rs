@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
+use core::cmp::Ordering;
 use core::marker::PhantomData;
 use core::mem::{align_of, size_of};
 use core::ops::*;
@@ -17,7 +18,7 @@ use core::ops::*;
 /// Unlike the naked underlying types, you can infallibly convert between,
 /// for example, an `Address<usize, ()>` and an `Address<u64, ()>` wherever
 /// such a conversion is lossless given the target CPU architecture.
-#[derive(Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Default)]
 #[repr(transparent)]
 pub struct Address<T, U>(T, PhantomData<U>);
 
@@ -62,6 +63,26 @@ where
 impl<T: core::fmt::UpperHex, U> core::fmt::UpperHex for Address<T, U> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         core::fmt::UpperHex::fmt(&self.0, f)
+    }
+}
+
+impl<T: PartialEq, U> PartialEq for Address<T, U> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl<T: Eq, U> Eq for Address<T, U> {}
+
+impl<T: PartialOrd, U> PartialOrd for Address<T, U> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.0.partial_cmp(&other.0)
+    }
+}
+
+impl<T: Ord, U> Ord for Address<T, U> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.cmp(&other.0)
     }
 }
 
