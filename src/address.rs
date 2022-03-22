@@ -4,7 +4,7 @@ use super::*;
 use core::cmp::Ordering;
 use core::marker::PhantomData;
 use core::mem::{align_of, size_of};
-use core::ops::*;
+use core::{ops::*, panic};
 
 /// An address
 ///
@@ -96,8 +96,22 @@ impl<T: Zero, U> Address<T, U> {
     pub const NULL: Address<T, U> = Address(T::ZERO, PhantomData);
 }
 
+impl<U> Address<usize, U> {
+    /// Creates a new address
+    ///
+    /// Panics if the value is not properly aligned.
+    #[inline]
+    pub const fn new(value: usize) -> Self {
+        if value % align_of::<U>() != 0 {
+            panic!("unaligned address value");
+        }
+
+        Self(value, PhantomData)
+    }
+}
+
 impl<T, U> Address<T, U> {
-    /// Create a new `Address` from a raw inner type without checking
+    /// Creates a new `Address` from a raw inner type without checking
     ///
     /// # Safety
     ///

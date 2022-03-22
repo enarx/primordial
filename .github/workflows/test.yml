@@ -21,7 +21,7 @@ jobs:
           - nightly
           - beta
           - stable
-          - 1.51.0
+          - 1.57.0
         features:
           -
           - alloc
