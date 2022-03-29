@@ -15,9 +15,15 @@ use core::ops::*;
 /// underlying types so long as the conversion is lossless for the target CPU
 /// architecture. For example, `Offset<u64>` can be converted to
 /// `Offset<usize>` on 64-bit systems.
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Default)]
 #[repr(transparent)]
 pub struct Offset<T, U>(T, PhantomData<U>);
+
+impl<T: core::fmt::Debug, U> core::fmt::Debug for Offset<T, U> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Debug::fmt(&self.0, f)
+    }
+}
 
 impl<T: core::fmt::Binary, U> core::fmt::Binary for Offset<T, U> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
