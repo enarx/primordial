@@ -366,7 +366,10 @@ where
 
 #[cfg(test)]
 mod test {
+    extern crate std;
+
     use super::*;
+    use std::println;
 
     #[test]
     fn align() {

@@ -6,9 +6,15 @@
 //!   * Offsets
 //!   * Pages
 
-#![cfg_attr(not(test), no_std)]
-#![deny(clippy::all)]
-#![deny(missing_docs)]
+#![no_std]
+#![forbid(clippy::expect_used, clippy::panic)]
+#![deny(
+    rust_2018_idioms,
+    unused_lifetimes,
+    unused_qualifications,
+    clippy::all,
+    missing_docs
+)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;

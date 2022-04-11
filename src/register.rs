@@ -35,50 +35,50 @@ macro_rules! implfrom {
 
     (@try $attr:meta Register<$f:ident> => Register<$t:ident>) => {
         #[$attr]
-        impl core::convert::TryFrom<Register<$f>> for Register<$t> {
+        impl TryFrom<Register<$f>> for Register<$t> {
             type Error = core::num::TryFromIntError;
 
             #[inline]
             fn try_from(value: Register<$f>) -> Result<Register<$t>, Self::Error> {
-                Ok(Self(core::convert::TryFrom::try_from(value.0)?))
+                Ok(Self(TryFrom::try_from(value.0)?))
             }
         }
     };
 
     (@try $attr:meta Register<$f:ident> => $t:ident) => {
         #[$attr]
-        impl core::convert::TryFrom<Register<$f>> for $t {
+        impl TryFrom<Register<$f>> for $t {
             type Error = core::num::TryFromIntError;
 
             #[inline]
             fn try_from(value: Register<$f>) -> Result<Self, Self::Error> {
-                core::convert::TryFrom::try_from(value.0)
+                TryFrom::try_from(value.0)
             }
         }
     };
 
     (@try $attr:meta Register<$f:ident> via Register<$s:ident> => Register<$t:ident>) => {
         #[$attr]
-        impl core::convert::TryFrom<Register<$f>> for Register<$t> {
+        impl TryFrom<Register<$f>> for Register<$t> {
             type Error = core::num::TryFromIntError;
 
             #[inline]
             fn try_from(value: Register<$f>) -> Result<Register<$t>, Self::Error> {
                 let s: Register<$s> = value.into();
-                Ok(Self(core::convert::TryFrom::try_from(s.0)?))
+                Ok(Self(TryFrom::try_from(s.0)?))
             }
         }
     };
 
     (@try $attr:meta Register<$f:ident> via Register<$s:ident> => $t:ident) => {
         #[$attr]
-        impl core::convert::TryFrom<Register<$f>> for $t {
+        impl TryFrom<Register<$f>> for $t {
             type Error = core::num::TryFromIntError;
 
             #[inline]
             fn try_from(value: Register<$f>) -> Result<Self, Self::Error> {
                 let s: Register<$s> = value.into();
-                core::convert::TryFrom::try_from(s.0)
+                TryFrom::try_from(s.0)
             }
         }
     };
