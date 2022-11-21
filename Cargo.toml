@@ -3,6 +3,7 @@ name = "primordial"
 version = "0.5.0"
 authors = ["The Enarx Project Developers"]
 edition = "2021"
+rust-version = "1.57"
 license = "Apache-2.0"
 homepage = "https://github.com/enarx/primordial"
 repository = "https://github.com/enarx/primordial"
